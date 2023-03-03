@@ -12,33 +12,8 @@ import {
 } from "@mui/material";
 import CommentIcon from '@mui/icons-material/Comment';
 import PropTypes from 'prop-types';
-const patients = [
-    {
-    Id: "1",
-    Name: "小明",
-    OrderId: "1",
-    },
-    {
-        Id: "2",
-        Name: "小華",
-        OrderId: "2",
-    },
-    {
-        Id: "3",
-        Name: "小張",
-        OrderId: "3",
-    },
-    {
-        Id: "4",
-        Name: "小李",
-        OrderId: "4",
-    },
-    {
-        Id: "5",
-        Name: "小王",
-        OrderId: "5",
-    }
-]
+import {useEffect} from "react";
+
 
 function CloseIcon() {
     return null;
@@ -47,14 +22,21 @@ function CloseIcon() {
 function SimpleDialog(props) {
     const { onClose, selectedValue, open } = props;
     const [orders, setOrder] = React.useState([]);
+    const [patient, setPatient] = React.useState([]);
     React.useEffect(() => {
-        fetch( 'http://localhost:3000/orders').then((response) => {
+        fetch( 'http://localhost:3000/patients/' + selectedValue).then((response) => {
             return response.json();
         } ).then((data) => {
-            setOrder(data)
-            console.log(data);
+            setPatient(data)
+        })
+
+        fetch( 'http://localhost:3000/orders').then((response) => {
+            return response.json();
+        } ).then((data2) => {
+            setOrder(data2)
         } )
-    }, []);
+
+    }, [selectedValue]);
 
     const handleClose = () => {
         onClose(selectedValue);
@@ -73,6 +55,16 @@ function SimpleDialog(props) {
                 return response.json();
             } ).then((data) => {
                 setOrder([...orders.slice(0,orders.length-1), data])
+                fetch( 'http://localhost:3000/patients/' + selectedValue, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                        body: JSON.stringify({orderId: data._id}),
+                    }
+                    ).then((response) => {
+                        console.log("新增成功");
+                })
                 console.log(data);
             } )
         }else {
@@ -116,7 +108,7 @@ function SimpleDialog(props) {
                 </Toolbar>
             </AppBar>
             <List sx={{ pt: 0 }}>
-                {orders.map((order) => (
+                {orders.filter((e)=>{return patient.OrderId.includes(e._id)||e._id===undefined}).map((order) => (
                     <ListItem disableGutters>
                         <ListItemButton  key={order._id}>
                             <TextField
@@ -152,7 +144,7 @@ SimpleDialog.propTypes = {
 const Home = () => {
     const [open, setOpen] = React.useState(false);
     const [selectedValue, setSelectedValue] = React.useState(1);
-    const [patient, setPatient] = React.useState({});
+    const [patients, setPatients] = React.useState([]);
 
     const handleClickOpen = (id) => {
         setOpen(true);
@@ -165,14 +157,16 @@ const Home = () => {
         setSelectedValue(value);
     };
 
-
-    fetch( 'http://localhost:3000/orders').then((response) => {
-        return response.json();
-    } ).then((data) => {
-        //setOrder(data)
-        console.log(data);
-    })
-
+    useEffect(
+        () => {
+            fetch( 'http://localhost:3000/patients').then((response) => {
+                return response.json();
+            } ).then((data) => {
+                setPatients(data)
+                console.log(data);
+            } )
+        }, []
+    )
    // const [searchParams, _] = useSearchParams();
     //const [category] = useState(searchParams.get('category')===null?'all':searchParams.get('category'));
 
