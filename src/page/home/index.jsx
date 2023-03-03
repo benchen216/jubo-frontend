@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import CommentIcon from '@mui/icons-material/Comment';
 import PropTypes from 'prop-types';
-const emails = ['username@gmail.com', 'user02@gmail.com'];
 const patients = [
     {
     Id: "1",
@@ -73,10 +72,9 @@ function SimpleDialog(props) {
             }).then((response) => {
                 return response.json();
             } ).then((data) => {
-                setOrder([...orders, data])
+                setOrder([...orders.slice(0,orders.length-1), data])
                 console.log(data);
             } )
-            orders.pop();
         }else {
             fetch( 'http://localhost:3000/orders/' + id, {
                 method: 'PUT',
@@ -94,6 +92,7 @@ function SimpleDialog(props) {
 
     const handleAdd = (value) => {
         setOrder([...orders, {Message: ""}]);
+        console.log(orders)
     }
 
     return (
